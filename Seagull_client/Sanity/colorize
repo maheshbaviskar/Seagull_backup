@@ -1,0 +1,8 @@
+awk '
+function color(c,s) {
+        printf("\033[%dm%s\033[0m\n",30+c,s)
+}
+/Failed calls/ {color(1,$0);next}
+/Successful calls/ {color(2,$0);next}
+{print}
+' $1

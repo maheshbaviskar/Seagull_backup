@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<!--  
+	Simulates MMS center which sends mms IEC traffic - debit requests
+		
+	Used dictionary: Gx_3gpp_Rel9_with_metering_new.xml(session linking by diameter session-id)
+	
+	Call Flow:
+	- Gy CER/CEA
+	- Gy CCR-IEC/CCA-IEC (Gy session immediate event charging for mms)
+-->
+
+<scenario>
+
+  <counter>
+    <counterdef name="HbH-counter" init="1000"> </counterdef> <!-- Hop by Hop Counter -->
+    <counterdef name="EtE-counter" init="2000"> </counterdef> <!-- End To End Counter -->
+    <counterdef name="session-counter" init="0"> </counterdef>
+    <counterdef name="subscription-counter" init="10000000" min="10000000" max="20000000"> </counterdef>
+  </counter>
+
+  <init>
+    <send channel="channel-1">
+      <command name="CER">
+	<avp name="Origin-Host" value="iscp1"> </avp>
+	<avp name="Origin-Realm" value="iscp-realm"> </avp>
+	<avp name="Host-IP-Address" value="0xC0A8A719"> </avp> <!-- To be replaced with actual IP address of mms center -->
+	<avp name="Vendor-Id" value="14380"> </avp>
+	<avp name="Product-Name" value="Seagull PCEF simulator"> </avp>
+	<avp name="Origin-State-Id" value="1094807040"> </avp>
+	<avp name="Supported-Vendor-Id" value="10415"> </avp>
+	<avp name="Auth-Application-Id" value="4"> </avp>	<!-- 3GPP Gy -->
+	<avp name="Acct-Application-Id" value="0"> </avp>
+	<avp name="Vendor-Specific-Application-Id">
+	    <avp name="Auth-Application-Id" value="16777217"> </avp>	<!-- 3GPP Sh -->
+	    <avp name="Vendor-Id" value="14380"> </avp>
+        </avp>	<!-- 3GPP Sh -->
+	<avp name="Firmware-Revision" value="1"> </avp>
+      </command>
+    </send>
+
+    <receive channel="channel-1">
+      <command name="CEA">
+      </command>
+    </receive>
+	
+	<!-- Device Watchdog 1 -->
+	<send channel="channel-1">        <command name="DWR">            <avp name="Origin-Host" value="iscp1"> </avp>            <avp name="Origin-Realm" value="pcef-realm"> </avp>		</command>    </send>    <receive channel="channel-1">        <command name="DWA"></command>    </receive>
+	<!-- Device Watchdog 2 -->
+	<send channel="channel-1">        <command name="DWR">            <avp name="Origin-Host" value="iscp1"> </avp>            <avp name="Origin-Realm" value="pcef-realm"> </avp>		</command>    </send>    <receive channel="channel-1">        <command name="DWA"></command>    </receive>
+	<!-- Device Watchdog 3-->
+	<send channel="channel-1">        <command name="DWR">            <avp name="Origin-Host" value="iscp1"> </avp>            <avp name="Origin-Realm" value="pcef-realm"> </avp>		</command>    </send>    <receive channel="channel-1">        <command name="DWA"></command>    </receive>
+	
+  </init>
+
+<!-- DWR -->
+
+        <default behaviour="ignore">
+                <receive channel="channel-1">
+                        <action>
+                                <store name="cachedHbH" entity="HbH-id"></store>
+                                <store name="cachedEtE" entity="EtE-id"></store>
+                        </action>
+                        <command name="DWR">
+                        </command>
+                </receive>
+                <send channel="channel-1">
+                        <action>
+                                <restore name="cachedHbH" entity="HbH-id"></restore>
+                                <restore name="cachedEtE" entity="EtE-id"></restore>
+                        </action>
+                        <command name="DWA">
+                                <avp name="Origin-Host" value="pcef1"></avp>
+                                <avp name="Origin-Realm" value="pcef-realm"></avp>
+                                <avp name="Result-Code" value="2001"></avp>
+                        </command>
+                </send>
+        </default>
+        <default behaviour="ignore">
+                <receive channel="channel-1">
+                        <action>
+                                <store name="cachedHbH" entity="HbH-id"></store>
+                                <store name="cachedEtE" entity="EtE-id"></store>
+                        </action>
+                        <command name="PNR">
+                        </command>
+                </receive>
+                <send channel="channel-1">
+                        <action>
+                                <restore name="cachedHbH" entity="HbH-id"></restore>
+                                <restore name="cachedEtE" entity="EtE-id"></restore>
+                        </action>
+                        <command name="PNA">
+                                <avp name="Origin-Host" value="pcef1"></avp>
+                                <avp name="Origin-Realm" value="pcef-realm"></avp>
+                                <avp name="Result-Code" value="2001"></avp>
+                        </command>
+                </send>
+        </default>
+
+
+  <!-- Traffic -->
+  <traffic>
+
+  <!-- CCR-IEC -->
+    <send channel="channel-1">
+      <action>
+	<!-- For each new call, increment the session-ID counter -->
+	<inc-counter name="HbH-counter"> </inc-counter>
+	<inc-counter name="EtE-counter"> </inc-counter>
+	<inc-counter name="session-counter"> </inc-counter>
+	<inc-counter name="subscription-counter"> </inc-counter>
+	<set-value name="HbH-id" format="$(HbH-counter)" > </set-value>
+	<set-value name="EtE-id" format="$(EtE-counter)"> </set-value>
+	<set-value name="Subscription-Id-Data" format="$(subscription-counter)" > </set-value>
+	<set-value name="Session-Id" format="pcef1.Gy;2317897827;$(session-counter)"> </set-value>
+	<store name="cachedSessionId" entity="Session-Id"> </store>
+	<store name="cachedSubscriptionId" entity="Subscription-Id-Data"> </store>
+      </action>
+      <command name="CCR-gy">
+	<avp name="Session-Id" value="value_is_replaced"> </avp>
+	<avp name="Origin-Host" value="pcef1"> </avp>
+	<avp name="Origin-Realm" value="pcef-realm"> </avp>
+        <avp name="Destination-Host" value="router-in"> </avp>
+	<avp name="Destination-Realm" value="router-realm"> </avp>
+	<avp name="Auth-Application-Id" value="4"> </avp> 		<!-- 3GPP Gy -->
+	<avp name="CC-Request-Type" value="4"> </avp> 			<!-- IEC request -->
+	<avp name="CC-Request-Number" value="0"> </avp>
+	<avp name="Requested-Action" value="0"> </avp> 			<!--direct debiting-->
+	<avp name="Event-Timestamp" value="0xD88F2E78"></avp>
+	<avp name="Service-Context-Id" value="32274@3gpp.org" ></avp>
+	<avp name="Service-Identifier" value="3"></avp>  		<!-- mms service-->
+	<avp name="Subscription-Id">
+	  <avp name="Subscription-Id-Type" value="0"></avp>
+          <avp name="Subscription-Id-Data" value="value_is_replaced"> </avp>
+	</avp>
+	<avp name="Multiple-Services-Indicator" value="1"></avp>
+        <avp name="Multiple-Services-Credit-Control">
+	  <avp name="Used-Service-Unit">
+	    <avp name="CC-Service-Specific-Units" value="1"> </avp>
+	  </avp>
+        </avp>
+
+      </command>
+      <action>
+	<start-timer></start-timer>
+      </action>
+    </send>
+
+    <receive channel="channel-1">
+      <action>
+	<stop-timer></stop-timer>
+    	<check-value name="Result-Code" behaviour="error"></check-value>
+      </action>
+      <command name="CCA-gy">
+        <avp name="Result-Code" value="2001"></avp>
+      </command>
+    </receive>
+
+
+  </traffic>
+  
+</scenario>

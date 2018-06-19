@@ -1,0 +1,32 @@
+2016-08-04.12:49:01.168|A|START log
+2016-08-04.12:49:01.170|A|Platform use LITTLE_ENDIAN coding
+2016-08-04.12:49:01.170|A|Integer32 Type size is: 8
+2016-08-04.12:49:01.170|A|Integer64 Type size is: 8
+2016-08-04.12:49:01.170|A|Configuration data:
+                       | |option_log_file  [pcef.log]
+                       | |option_conf_file [conf-pcef.xml]
+                       | |option_dico_file [Gx_3gpp_Rel9_with_metering.xml]
+                       | |option_scen_file [scenario-oca-pcef-sms.xml]
+                       | |log_stat_file    [../log/stat.csv]
+                       | |option_log_level [A]
+                       | |option_bg_mode   [false]
+                       | |call_rate        [1]
+                       | |burst_limit      [0]
+                       | |max_send         [8000]
+                       | |max_receive      [8000]
+                       | |select_timeout   [5]
+                       | |max_simult_calls [30000]
+                       | |call_timeout_ms  [60000]
+                       | |msg_buffer_size  [4096]
+                       | |display_period   [5]
+                       | |log_stat_period  [60]
+                       | |resp_time_repart [1,5,10,25,50,75,100,125,150,200,250,300,350,400,500,800,1000,5000]
+                       | |number_calls     [1]
+                       | |notimelog        [false]
+                       | |msg check        [false]
+                       | |msg check mask   [P]
+                       | |check behaviour  [warning]
+                       | |call rate scale  [25]
+                       | |model traffic    [best-effort]
+                       | |external data file    [none]
+                       | |external data select  [sequential]
